@@ -43,47 +43,32 @@
   </div>
 
   <script>
-    // Fungsi untuk menyimpan data ke cookie
-    function setCookie(name, value, days) {
-      var expires = "";
-      if (days) {
-        var date = new Date();
-        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-        expires = "; expires=" + date.toUTCString();
-      }
-      document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/";
+    // Fungsi untuk menyimpan data ke Local Storage
+    function setLocalStorage(name, value) {
+      localStorage.setItem(name, JSON.stringify(value));
     }
 
-    // Fungsi untuk membaca data dari cookie
-    function getCookie(name) {
-      var nameEQ = name + "=";
-      var ca = document.cookie.split(';');
-      for (var i = 0; i < ca.length; i++) {
-        var c = ca[i];
-        while (c.charAt(0) == ' ') c = c.substring(1, c.length);
-        if (c.indexOf(nameEQ) == 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
-      }
-      return null;
+    // Fungsi untuk membaca data dari Local Storage
+    function getLocalStorage(name) {
+      var value = localStorage.getItem(name);
+      return value ? JSON.parse(value) : [];
     }
 
-    // Fungsi untuk menampilkan data dari cookie ke dalam tabel
-    function showDataFromCookie() {
-      var data = getCookie("dataKGD");
-      if (data) {
-        data = JSON.parse(data);
-        var tableBody = $("#dataKGD");
-        tableBody.empty();
-        $.each(data, function (index, item) {
-          tableBody.append(
-            "<tr><td>" + item.tanggal + "</td><td>" + item.waktu + "</td><td>" + item.kgd + " mg/dL</td></tr>"
-          );
-        });
-      }
+    // Fungsi untuk menampilkan data dari Local Storage ke dalam tabel
+    function showDataFromLocalStorage() {
+      var data = getLocalStorage("dataKGD");
+      var tableBody = $("#dataKGD");
+      tableBody.empty();
+      $.each(data, function (index, item) {
+        tableBody.append(
+          "<tr><td>" + item.tanggal + "</td><td>" + item.waktu + "</td><td>" + item.kgd + " mg/dL</td></tr>"
+        );
+      });
     }
 
     $(document).ready(function () {
-      // Tampilkan data dari cookie saat halaman dimuat
-      showDataFromCookie();
+      // Tampilkan data dari Local Storage saat halaman dimuat
+      showDataFromLocalStorage();
 
       // Tangkap pengiriman form
       $("#kgdForm").submit(function (event) {
@@ -93,14 +78,13 @@
         var waktu = $("#waktu").val();
         var kgd = $("#kgd").val();
 
-        // Simpan data ke dalam cookie
-        var data = getCookie("dataKGD") || "[]";
-        data = JSON.parse(data);
+        // Ambil data dari Local Storage, tambahkan data baru, dan simpan kembali ke Local Storage
+        var data = getLocalStorage("dataKGD");
         data.push({ tanggal: tanggalFormatted, waktu: waktu, kgd: kgd });
-        setCookie("dataKGD", JSON.stringify(data), 365); // Disimpan selama 1 tahun (365 hari)
+        setLocalStorage("dataKGD", data);
 
-        // Tampilkan data dari cookie ke dalam tabel
-        showDataFromCookie();
+        // Tampilkan data dari Local Storage ke dalam tabel
+        showDataFromLocalStorage();
 
         // Reset form
         $("#tanggal").val("");
