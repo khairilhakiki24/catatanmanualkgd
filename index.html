@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Form Pencatatan KGD</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+  <div class="container mt-5">
+    <h2>Form Pencatatan KGD</h2>
+    <form id="kgdForm">
+      <div class="form-group">
+        <label for="tanggal">Tanggal:</label>
+        <input type="date" class="form-control" id="tanggal" required>
+      </div>
+      <div class="form-group">
+        <label for="waktu">Waktu:</label>
+        <input type="time" class="form-control" id="waktu" required>
+      </div>
+      <div class="form-group">
+        <label for="kgd">KGD (Jumlah mg/dL):</label>
+        <input type="number" class="form-control" id="kgd" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Simpan</button>
+    </form>
+
+    <div class="mt-4">
+      <h2>Data Pencatatan KGD</h2>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Tanggal</th>
+            <th>Waktu</th>
+            <th>KGD (mg/dL)</th>
+          </tr>
+        </thead>
+        <tbody id="dataKGD"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // Fungsi untuk menyimpan data ke cookie
+    function setCookie(name, value, days) {
+      var expires = "";
+      if (days) {
+        var date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toUTCString();
+      }
+      document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/";
+    }
+
+    // Fungsi untuk membaca data dari cookie
+    function getCookie(name) {
+      var nameEQ = name + "=";
+      var ca = document.cookie.split(';');
+      for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) == 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
+      }
+      return null;
+    }
+
+    // Fungsi untuk menampilkan data dari cookie ke dalam tabel
+    function showDataFromCookie() {
+      var data = getCookie("dataKGD");
+      if (data) {
+        data = JSON.parse(data);
+        var tableBody = $("#dataKGD");
+        tableBody.empty();
+        $.each(data, function (index, item) {
+          tableBody.append(
+            "<tr><td>" + item.tanggal + "</td><td>" + item.waktu + "</td><td>" + item.kgd + " mg/dL</td></tr>"
+          );
+        });
+      }
+    }
+
+    $(document).ready(function () {
+      // Tampilkan data dari cookie saat halaman dimuat
+      showDataFromCookie();
+
+      // Tangkap pengiriman form
+      $("#kgdForm").submit(function (event) {
+        event.preventDefault();
+        var tanggal = new Date($("#tanggal").val());
+        var tanggalFormatted = tanggal.toLocaleDateString('en-GB');
+        var waktu = $("#waktu").val();
+        var kgd = $("#kgd").val();
+
+        // Simpan data ke dalam cookie
+        var data = getCookie("dataKGD") || "[]";
+        data = JSON.parse(data);
+        data.push({ tanggal: tanggalFormatted, waktu: waktu, kgd: kgd });
+        setCookie("dataKGD", JSON.stringify(data), 365); // Disimpan selama 1 tahun (365 hari)
+
+        // Tampilkan data dari cookie ke dalam tabel
+        showDataFromCookie();
+
+        // Reset form
+        $("#tanggal").val("");
+        $("#waktu").val("");
+        $("#kgd").val("");
+      });
+    });
+  </script>
+</body>
+</html>
